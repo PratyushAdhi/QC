@@ -1,0 +1,90 @@
+from numpy import *
+from matplotlib.pyplot import *
+
+#coin states 
+c0 = transpose(array([[1, 0]]))
+c1 = transpose(array([[0, 1]]))
+Coin00 = outer(c0, c0) # define the Hademard coin operator |0><0|
+print(c0)
+#print Coin00
+#[[1 0],
+# [0 0]]
+
+# define Coin11 to be |1><1|
+
+Coin11 = outer(c1, c1)
+
+#print Coin11
+#[[0 0]
+# [0 1]]
+
+
+Coin10 = outer(c1, c0)
+Coin01 = outer(c0, c1)
+
+# define coin operator C_hat that "toosses/rotates" a quantum coin
+C_hat = ( 1/sqrt(2) ) * ( Coin00 + Coin01 + Coin10 - Coin11 )
+np.set_printoptions(precision=4)
+
+class Experiment: 
+    def __init__(self,initial_state, N, alpha, iterations):
+        self.initial_state = initial_state
+        self.N = N
+        self.alpha = alpha
+        self.iterations = iterations
+        self.I = eye(2)
+        self.F_operator = None
+        self.O_operator = None
+        self.E_operator = None
+        self.final_state = None
+        self.get_F_operator()
+        self.get_O_operator()
+        self.get_E_operator()
+        self.get_Final_State()
+        
+    def get_F_operator(self):
+        sum_first = 0
+        sum_second = 0
+        for x in range(self.N):
+            first_mod = transpose(array([[(x+1)%N,0]]))
+            second_mod = transpose(array([[(x-1)%N,0]]))
+            first_part_1 = kron(first_mod,c0)
+            #print(first_part_1)
+            second_part_1 = kron(second_mod,c1)
+            #print(second_part_1)
+            x_vec = transpose(array([[x,0]]))
+            first_part_2 = kron(x_vec,c0)
+            second_part_2 = kron(x_vec, c1)
+            first_part = outer(first_part_1,first_part_2)
+            second_part = outer(second_part_1, second_part_2)
+            sum_first += first_part
+            sum_second += second_part
+        self.F_operator = sum_first + sum_second
+        return(self.F_operator)
+    
+
+    def get_O_operator(self):
+        O = [[cos(self.alpha).astype(float), sin(self.alpha).astype(float)],
+             [sin(self.alpha).astype(float), -cos(self.alpha).astype(float)]]
+        self.O_operator = array(O)
+        return(self.O_operator)
+    
+    def get_E_operator(self):
+        temp = kron(self.I,self.O_operator)
+        self.E_operator = matmul(self.F_operator,temp)
+        return(self.E_operator)
+    
+    def get_Final_State(self):
+        print(self.initial_state)
+        temp = linalg.matrix_power(self.E_operator, self.iterations)
+        print(temp)
+        self.final_state = matmul(temp,self.initial_state)
+        print(self.final_state)
+        return(self.final_state)
+
+    
+   
+        
+        
+    
+    
