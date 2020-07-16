@@ -1,0 +1,23 @@
+token = "" #enter token
+f = open("randomnos.txt", "w")
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute,IBMQ 
+IBMQ.disable_account()
+IBMQ.enable_account(token)
+provider = IBMQ.get_provider(hub='ibm-q')
+q = QuantumRegister(8,'q') #we've chose 8 bits
+c = ClassicalRegister(8,'c')
+circuit = QuantumCircuit(q,c)
+for _ in range(256): #iterations
+    circuit.h(q) 
+    circuit.measure(q,c) 
+    backend = provider.get_backend('ibmq_qasm_simulator') 
+    job = execute(circuit, backend, shots=1) 
+    print('Executing Job...\n') 
+    result = job.result() 
+    counts = result.get_counts(circuit) 
+    for key in counts:
+        text = str(key) + "\t" + str(counts[key])
+        f.write(text)
+    print('RESULT: ',counts,'\n') 
+print('Press any key to close') 
+input() #finish
