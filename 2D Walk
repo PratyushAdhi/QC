@@ -1,0 +1,85 @@
+class Experiment_2D():
+    
+    def __init__(self,initial_state, N, alpha0, alpha1, iterations):
+        self.initial_state = Operator(initial_state)
+        self.N = N
+        self.iterations = iterations
+        self.I = eye(2)
+        self.Fx_operator = None
+        self.Fy_operator = None
+        self.O0_operator = None
+        self.O1_operator = None
+        self.E0_operator = None
+        self.E1_operator = None
+        self.final_state = None
+        self.get_Fx_operator()
+        self.get_Fy_operator()
+        self.get_O_operator(alpha0)
+        self.get_O_operator(alpha1)
+        self.get_E0_operator()
+        self.get_E1_operator()
+        
+        
+    
+    def get_Fx_operator():
+        sum_first = 0
+        sum_second = 0
+        for x in range(self.N):
+            first_mod = transpose(array([[(x+1)%N,0]]))
+            second_mod = transpose(array([[(x-1)%N,0]]))
+            first_part_1 = kron(first_mod,kron(y, c0))
+            #print(first_part_1)
+            second_part_1 = kron(second_mod,kron(y,c1))
+            #print(second_part_1)
+            x_vec = transpose(array([[x,0]]))
+            first_part_2 = kron(x_vec,kron(y,c0))
+            second_part_2 = kron(x_vec, kron(y,c1))
+            first_part = outer(first_part_1,first_part_2)
+            second_part = outer(second_part_1, second_part_2)
+            sum_first += first_part
+            sum_second += second_part
+        self.F_operator = Operator(sum_first + sum_second)
+        return(self.Fx_operator)
+    
+    def get_Fy_operator():
+        sum_first = 0
+        sum_second = 0
+        for x in range(self.N):
+            first_mod = transpose(array([[(y+1)%N,0]]))
+            second_mod = transpose(array([[(y-1)%N,0]]))
+            first_part_1 = kron(x,kron(first_mod, c0))
+            #print(first_part_1)
+            second_part_1 = kron(x, kron(second_mod,c1))
+            #print(second_part_1)
+            x_vec = transpose(array([[x,0]]))
+            first_part_2 = kron(x_vec,kron(y,c0))
+            second_part_2 = kron(x_vec, kron(y,c1))
+            first_part = outer(first_part_1,first_part_2)
+            second_part = outer(second_part_1, second_part_2)
+            sum_first += first_part
+            sum_second += second_part
+        self.F_operator = Operator(sum_first + sum_second)
+        return(self.Fy_operator)
+        
+    def get_O_operator(self, alpha):
+        O = [[cos(alpha).astype(float), sin(alpha).astype(float)],
+             [sin(alpha).astype(float), -cos(alpha).astype(float)]]
+        return Operator(O)
+    
+    def get_E0_operator(self):
+        temp1 = Operator(self.O0_operator.expand(self.I)) #(I X O0)
+        temp2 = temp1.compose(self.Fy_operator) #Fy * (I X O0)
+        temp3 = temp1.compose(self.Fx_operator) #Fx * (I X O0)
+        E0_operator = temp3.compose(temp2)
+        self.E0_operator = E0_operator      #matmul(self.F_operator,temp)
+        return(self.E0_operator)
+    
+    
+    def get_E1_operator(self):
+        temp1 = Operator(self.O1_operator.expand(self.I))
+        temp2 = temp2.compose(self.Fy_operator) #Fy * (I X O1)
+        temp3 = temp2.compose(self.Fx_operator) #Fx * (I X O1)
+        E1_operator = temp3.compose(temp2)
+        self.E0_operator = E1_operator      #matmul(self.F_operator,temp)
+        return(self.E1_operator)
+    
